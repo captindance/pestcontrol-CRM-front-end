@@ -1,7 +1,11 @@
 // In development backend runs on 3001; in production both frontend & backend are proxied on 3000
 const API_BASE = (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
-function getAuthHeaders() {
+// Request timeout in milliseconds (30 seconds)
+const REQUEST_TIMEOUT = 30000;
+
+// Export getAuthHeaders for use in other components
+export function getAuthHeaders() {
   const token = localStorage.getItem('jwt') || localStorage.getItem('demo_jwt');
   const tenantId = localStorage.getItem('selected_tenant_id');
   const actingRole = localStorage.getItem('acting_role');
@@ -13,9 +17,36 @@ function getAuthHeaders() {
 
 import { refreshToken, logout } from './auth.js';
 
+/**
+ * Create a fetch request with timeout
+ * @param {string} url - URL to fetch
+ * @param {object} options - Fetch options
+ * @param {number} timeout - Timeout in milliseconds
+ * @returns {Promise<Response>}
+ */
+async function fetchWithTimeout(url, options = {}, timeout = REQUEST_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - server took too long to respond');
+    }
+    throw error;
+  }
+}
+
 async function request(path, options = {}, attempt = 0) {
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetchWithTimeout(`${API_BASE}${path}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -134,7 +165,7 @@ export async function getMyPermissions(clientId) {
 // Authentication endpoints
 export async function checkHasUsers() {
   try {
-    const res = await fetch(`${API_BASE}/auth/has-users`);
+    const res = await fetchWithTimeout(`${API_BASE}/auth/has-users`);
     if (!res.ok) return { error: `HTTP ${res.status}` };
     return await res.json();
   } catch (e) {
@@ -164,7 +195,7 @@ export async function signup(email, firstName, lastName, companyNameOrClientId, 
       body.password = password;
     }
     
-    const res = await fetch(`${API_BASE}/auth/signup`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -182,7 +213,7 @@ export async function signup(email, firstName, lastName, companyNameOrClientId, 
 // Invitation functions (admin only)
 export async function sendInvitation(email, clientId) {
   try {
-    const res = await fetch(`${API_BASE}/admin/invitations`, {
+    const res = await fetchWithTimeout(`${API_BASE}/admin/invitations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('jwt')}` },
       body: JSON.stringify({ email, clientId })
@@ -199,7 +230,7 @@ export async function sendInvitation(email, clientId) {
 
 export async function resendInvitation(invitationId) {
   try {
-    const res = await fetch(`${API_BASE}/admin/invitations/${invitationId}/resend`, {
+    const res = await fetchWithTimeout(`${API_BASE}/admin/invitations/${invitationId}/resend`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt')}` }
     });
@@ -216,7 +247,7 @@ export async function resendInvitation(invitationId) {
 export async function getInvitations(clientId = null) {
   try {
     const url = clientId ? `${API_BASE}/admin/invitations?clientId=${clientId}` : `${API_BASE}/admin/invitations`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt')}` }
     });
     if (!res.ok) {
