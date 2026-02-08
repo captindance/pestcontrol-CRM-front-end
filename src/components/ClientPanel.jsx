@@ -290,6 +290,7 @@ export default function ClientPanel({ clientId, clientName }) {
                   onChange={e => setNewUserEmail(e.target.value)}
                   onKeyPress={e => e.key === 'Enter' && handleInviteUser()}
                   style={{ width: '100%', padding: '.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
+                  required
                 />
               </div>
               <div>

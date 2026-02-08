@@ -179,6 +179,7 @@ export default function Signup({ onSignupSuccess }) {
             placeholder="At least 6 characters"
             style={{ width: '100%', marginBottom: '1rem', padding: '.5rem', borderRadius: '.25rem', border: '1px solid #ccc', boxSizing: 'border-box' }}
             required
+            minLength={6}
           />
 
           <label style={{ display: 'block', marginBottom: '.25rem', fontWeight: 'bold' }}>Confirm Password</label>
@@ -189,6 +190,7 @@ export default function Signup({ onSignupSuccess }) {
             placeholder="Re-enter password"
             style={{ width: '100%', marginBottom: '1.5rem', padding: '.5rem', borderRadius: '.25rem', border: '1px solid #ccc', boxSizing: 'border-box' }}
             required
+            minLength={6}
           />
         </>
       )}
