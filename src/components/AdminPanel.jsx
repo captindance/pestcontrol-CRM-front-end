@@ -336,11 +336,11 @@ export default function AdminPanel() {
             </label>
             <label>
               From Address
-              <input type="email" value={smtp.fromAddress} onChange={e=>setSmtp(s=>({ ...s, fromAddress:e.target.value }))} />
+              <input type="email" value={smtp.fromAddress} onChange={e=>setSmtp(s=>({ ...s, fromAddress:e.target.value }))} required />
             </label>
             <label>
               Test Email Address
-              <input type="email" value={testEmail} onChange={e=>setTestEmail(e.target.value)} placeholder="where to send test email" />
+              <input type="email" value={testEmail} onChange={e=>setTestEmail(e.target.value)} placeholder="where to send test email" required />
             </label>
           </div>
           <div style={{ marginTop:'.5rem' }}>
@@ -405,6 +405,7 @@ export default function AdminPanel() {
               value={inviteEmail} 
               onChange={e => setInviteEmail(e.target.value)}
               style={{ flex: '1 1 280px', padding: '.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
+              required
             />
             <button 
               onClick={handleSendInvitation}
@@ -518,7 +519,7 @@ export default function AdminPanel() {
               <button onClick={handleRefreshManagers} style={{ padding:'.4rem .8rem', background:'#f0f0f0', border:'1px solid #ccc', cursor:'pointer', borderRadius:'4px' }}>Refresh Managers</button>
             </div>
             <div style={{ display:'flex', gap:'.5rem' }}>
-              <input type="email" placeholder="manager@example.com" value={email} onChange={e=>setEmail(e.target.value)} />
+              <input type="email" placeholder="manager@example.com" value={email} onChange={e=>setEmail(e.target.value)} required />
               <button onClick={handleCreateManager}>Create Manager</button>
             </div>
             {creationNotice && (
