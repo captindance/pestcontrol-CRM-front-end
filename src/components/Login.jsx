@@ -27,9 +27,9 @@ export default function Login({ onLoginSuccess }) {
       <h2>Login</h2>
       {error && <div style={{ color:'red', marginBottom: '.5rem' }}>{error}</div>}
       <label>Email</label>
-      <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{ width:'100%', marginBottom: '.5rem' }} />
+      <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={{ width:'100%', marginBottom: '.5rem' }} required />
       <label>Password</label>
-      <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••" style={{ width:'100%', marginBottom: '.75rem' }} />
+      <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••" style={{ width:'100%', marginBottom: '.75rem' }} required minLength={8} />
       <button type="submit" disabled={loading}>
         {loading ? 'Signing in...' : 'Sign In'}
       </button>
