@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 export default function Sidebar({ role, roles, actingRole, onActingRoleChange, tenantId, tenantOptions, onTenantChange, navItems, currentNav, onNavSelect, onLogout }) {
-  const [showCapabilities, setShowCapabilities] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     // Remember sidebar state in localStorage
     const saved = localStorage.getItem('sidebarCollapsed');
@@ -11,8 +10,6 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', isCollapsed);
   }, [isCollapsed]);
-
-  const capabilities = buildCapabilities(roles, actingRole);
 
   return (
     <>
@@ -139,29 +136,6 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
           ))}
         </nav>
 
-        {/* Capabilities */}
-        {!isCollapsed && (
-          <div style={{ padding: '1rem', borderTop: '1px solid #ddd', background: '#fff' }}>
-            <button
-              onClick={() => setShowCapabilities(!showCapabilities)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0078d4', textDecoration: 'underline', padding: 0 }}
-            >
-              {showCapabilities ? '▼' : '▶'} Capabilities
-            </button>
-            {showCapabilities && (
-              <div style={{ marginTop: '.5rem' }}>
-                {capabilities.length === 0 ? (
-                  <small style={{ color: '#666' }}>None</small>
-                ) : (
-                  <ul style={{ margin: 0, paddingLeft: '1rem' }}>
-                    {capabilities.map((c, i) => <li key={i}><small>{c}</small></li>)}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* User footer */}
         <div style={{ padding: isCollapsed ? '.5rem' : '1rem', borderTop: '1px solid #ddd', background: '#fff' }}>
           <button
@@ -205,27 +179,4 @@ function getNavIcon(key) {
     connections: '🔌'
   };
   return icons[key] || '📄';
-}
-
-function buildCapabilities(roles, actingRole) {
-  const set = new Set();
-  const has = (r) => Array.isArray(roles) && roles.includes(r);
-
-  if (has('delegate')) set.add('View reports (read-only)');
-  if (has('business_owner')) {
-    set.add('View & run reports');
-    set.add('Manage client users');
-  }
-  if (has('manager')) {
-    set.add('Manage assigned clients');
-    set.add('Run cross-client reports');
-  }
-  if (has('platform_admin')) {
-    set.add('Create clients');
-    set.add('Create & assign managers');
-    set.add('Manage all users');
-    set.add('Access platform admin tools');
-  }
-
-  return Array.from(set);
 }
