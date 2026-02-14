@@ -141,7 +141,7 @@ export default function ReportChart({ result }) {
                         transform: opts.rotateCategoryLabels ? 'rotate(-45deg)' : 'none',
                         transformOrigin: opts.rotateCategoryLabels ? 'center top' : 'center'
                       }} title={cat}>
-                        {cat}
+                        {formatCategoryLabel(cat)}
                       </div>
                     </div>
                   );
@@ -270,4 +270,16 @@ function formatValue(val, fmt) {
     minimumFractionDigits: decimalPlaces,
     maximumFractionDigits: decimalPlaces
   }).format(val);
+}
+
+function formatCategoryLabel(cat) {
+  // If category looks like a large decimal number, truncate/format it
+  const asNumber = parseFloat(cat);
+  if (Number.isFinite(asNumber) && Math.abs(asNumber) > 100 && cat.includes('.')) {
+    // It's a numeric value being used as category - format it nicely
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 2
+    }).format(asNumber);
+  }
+  return cat;
 }
