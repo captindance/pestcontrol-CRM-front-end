@@ -138,7 +138,8 @@ export async function updateEmailSettings(settings) {
 export async function executeQuery(reportId, sqlQuery, connectionId) {
   const body = { sqlQuery };
   if (connectionId) {
-    body.connectionId = connectionId;
+    // Convert connectionId to integer to match backend type expectations
+    body.connectionId = parseInt(connectionId, 10);
   }
   return await request(`/reports/${reportId}/execute-query`, { 
     method: 'POST', 
