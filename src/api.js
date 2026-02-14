@@ -1,8 +1,8 @@
 // In development backend runs on 3001; in production both frontend & backend are proxied on 3000
 const API_BASE = (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
-// Request timeout in milliseconds (30 seconds)
-const REQUEST_TIMEOUT = 30000;
+// Request timeout in milliseconds (5 minutes for long-running queries)
+const REQUEST_TIMEOUT = 300000;
 
 // Export getAuthHeaders for use in other components
 export function getAuthHeaders() {
