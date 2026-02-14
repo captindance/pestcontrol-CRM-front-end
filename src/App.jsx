@@ -10,6 +10,8 @@ import ClientPanel from './components/ClientPanel.jsx';
 import DatabaseConnections from './components/DatabaseConnections.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import MainLayout from './components/MainLayout.jsx';
+import Toast from './components/Toast.jsx';
+import { ReportCardSkeleton, EmptyState } from './components/LoadingStates.jsx';
 
 // In development backend runs on 3001; in production both frontend & backend are proxied on 3000
 const API_BASE = (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
@@ -65,6 +67,8 @@ export default function App() {
   const [showResultDetails, setShowResultDetails] = useState({}); // { reportId: bool }
   const [seriesFormats, setSeriesFormats] = useState({}); // { reportId: { seriesName: 'currency'|'percentage'|'number' } }
   const [seriesDisplayNames, setSeriesDisplayNames] = useState({}); // { reportId: { seriesName: 'Display Name' } }
+  const [toast, setToast] = useState(null); // { message, type }
+  const [loadingReports, setLoadingReports] = useState(true);
 
   const formatDateTime = (value) => {
     const d = value ? new Date(value) : null;
@@ -78,6 +82,11 @@ export default function App() {
       second: '2-digit',
       hour12: false
     });
+  };
+
+  // Toast helper
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
   };
 
   // Check if user has permission to manage database connections
