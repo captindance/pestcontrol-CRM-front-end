@@ -103,7 +103,7 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
         )}
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: isCollapsed ? '.5rem 0' : '1rem 0', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: isCollapsed ? '.5rem 0' : '1rem 0' }}>
           {navItems.map(item => (
             <button
               key={item.key}

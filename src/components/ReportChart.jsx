@@ -47,11 +47,11 @@ export default function ReportChart({ result }) {
 
   if (data.type === 'bar') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '100%' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: '#555', fontSize: '0.85rem', minWidth: '20px', textAlign: 'center' }}>{yLabel}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ padding: '16px', background: '#f8fafc', border: '1px solid #e3e9ef', borderRadius: '6px', overflowX: 'auto' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ padding: '16px', background: '#f8fafc', border: '1px solid #e3e9ef', borderRadius: '6px', overflowX: 'auto', maxWidth: '100%' }}>
               <div style={{ display: 'flex', gap: '20px' }}>
                 {categories.map((cat, idx) => {
                   const barWidth = series.length === 1 ? 36 : 28;
