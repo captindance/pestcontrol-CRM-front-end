@@ -1354,9 +1354,13 @@ export default function App() {
                                                     }))}
                                                     style={{ padding: '.25rem', flex: 1, fontSize: '0.85rem' }}
                                                   >
-                                                    <option value="number">Number</option>
-                                                    <option value="currency">Currency ($)</option>
-                                                    <option value="percentage">Percentage (%)</option>
+                                                    <option value="number">Number (5,962)</option>
+                                                    <option value="number:1">Number (5,962.4)</option>
+                                                    <option value="number:2">Number (5,962.42)</option>
+                                                    <option value="currency">Currency ($5,962)</option>
+                                                    <option value="currency:2">Currency ($5,962.42)</option>
+                                                    <option value="percentage">Percentage (85%)</option>
+                                                    <option value="percentage:2">Percentage (85.50%)</option>
                                                   </select>
                                                 </div>
                                               </div>
