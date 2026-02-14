@@ -1416,26 +1416,6 @@ export default function App() {
                                       </div>
                                     </div>
 
-                                    {/* Save Chart Configuration Button (only while editing) */}
-                                    {editingReportId === r.id && (
-                                      <button
-                                        onClick={() => handleSaveChartConfig(r.id)}
-                                        disabled={savingChartConfig === r.id}
-                                        style={{
-                                          padding: '.3rem .6rem',
-                                          background: savingChartConfig === r.id ? '#cccccc' : '#28a745',
-                                          color: 'white',
-                                          border: 'none',
-                                          borderRadius: '4px',
-                                          cursor: savingChartConfig === r.id ? 'not-allowed' : 'pointer',
-                                          fontSize: '0.85rem',
-                                          opacity: savingChartConfig === r.id ? 0.7 : 1,
-                                          marginRight: '.5rem'
-                                        }}
-                                      >
-                                        {savingChartConfig === r.id ? '⏳ Saving...' : '💾 Save Chart Config'}
-                                      </button>
-                                    )}
                                   </div>
                                   </>
                                   )}
