@@ -567,7 +567,7 @@ export default function App() {
     
     try {
       console.log('[Query] Executing query for report:', reportId);
-      const res = await executeQuery(reportId, editReportSqlQuery);
+      const res = await executeQuery(reportId, editReportSqlQuery, editReportConnectionId);
       
       console.log('[Query] Execute response:', res);
       
