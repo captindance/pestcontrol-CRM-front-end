@@ -135,10 +135,14 @@ export async function updateEmailSettings(settings) {
 }
 
 // SQL Query execution and caching
-export async function executeQuery(reportId, sqlQuery) {
+export async function executeQuery(reportId, sqlQuery, connectionId) {
+  const body = { sqlQuery };
+  if (connectionId) {
+    body.connectionId = connectionId;
+  }
   return await request(`/reports/${reportId}/execute-query`, { 
     method: 'POST', 
-    body: JSON.stringify({ sqlQuery }) 
+    body: JSON.stringify(body) 
   });
 }
 
