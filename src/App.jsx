@@ -537,6 +537,10 @@ export default function App() {
     setEditReportConnectionId(report.connectionId || '');
     setEditReportSqlQuery(report.sqlQuery || '');
 
+    // Clear old query results when entering edit mode
+    setQueryResults(prev => ({ ...prev, [report.id]: null }));
+    setExpandedResultsReportId(null);
+
     // Load chart config for this report if available
     if (reportChartConfig[report.id]?.selectedFields) {
       setChartFieldSelection(prev => ({ ...prev, [report.id]: reportChartConfig[report.id].selectedFields }));
@@ -573,6 +577,7 @@ export default function App() {
     
     setExecutingQuery(reportId);
     setError(null); // Clear previous errors
+    setQueryResults(prev => ({ ...prev, [reportId]: null })); // Clear old results
     
     try {
       console.log('[Query] Executing query for report:', reportId);
