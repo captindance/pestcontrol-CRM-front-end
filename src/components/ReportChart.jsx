@@ -263,8 +263,34 @@ function Legend({ series, style }) {
 
 function formatValue(val, fmt) {
   if (!Number.isFinite(val)) return val;
-  if (fmt === 'currency') {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+  
+  // Parse format string: "currency:2" or "percentage:1" or just "currency"
+  const [formatType, decimalsStr] = (fmt || 'number').split(':');
+  const decimals = decimalsStr ? parseInt(decimalsStr, 10) : undefined;
+  
+  if (formatType === 'currency') {
+    const decimalPlaces = decimals !== undefined ? decimals : 0;
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD', 
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces 
+    }).format(val);
   }
-  return val;
+  
+  if (formatType === 'percentage') {
+    const decimalPlaces = decimals !== undefined ? decimals : 1;
+    return new Intl.NumberFormat('en-US', { 
+      style: 'decimal',
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces 
+    }).format(val) + '%';
+  }
+  
+  // Plain number with thousand separators
+  const decimalPlaces = decimals !== undefined ? decimals : 0;
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces
+  }).format(val);
 }
