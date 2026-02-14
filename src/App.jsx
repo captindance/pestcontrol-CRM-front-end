@@ -50,7 +50,7 @@ export default function App() {
   const [tenantSelectTouched, setTenantSelectTouched] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [showDeleteSnackbar, setShowDeleteSnackbar] = useState(false);
-  const [reportsTab, setReportsTab] = useState('reports'); // 'reports' or 'connections'
+  const [reportsTab, setReportsTab] = useState('reports'); // Only 'reports' tab now - connections moved to Settings
   const [editReportSqlQuery, setEditReportSqlQuery] = useState('');
   const [queryResults, setQueryResults] = useState({});
   const [executingQuery, setExecutingQuery] = useState(null);
@@ -978,45 +978,7 @@ export default function App() {
                   
                   {tenantId && (
                     <>
-                      {/* Tab Selector */}
-                      {canManageConnections() && (
-                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '2px solid #dee2e6' }}>
-                          <button
-                            onClick={() => setReportsTab('reports')}
-                            style={{
-                              padding: '.75rem 1.5rem',
-                              background: 'transparent',
-                              color: reportsTab === 'reports' ? '#007bff' : '#6c757d',
-                              border: 'none',
-                              borderBottom: reportsTab === 'reports' ? '3px solid #007bff' : '3px solid transparent',
-                              cursor: 'pointer',
-                              fontSize: '1rem',
-                              fontWeight: reportsTab === 'reports' ? 'bold' : 'normal',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            Reports
-                          </button>
-                          <button
-                            onClick={() => setReportsTab('connections')}
-                            style={{
-                              padding: '.75rem 1.5rem',
-                              background: 'transparent',
-                              color: reportsTab === 'connections' ? '#007bff' : '#6c757d',
-                              border: 'none',
-                              borderBottom: reportsTab === 'connections' ? '3px solid #007bff' : '3px solid transparent',
-                              cursor: 'pointer',
-                              fontSize: '1rem',
-                              fontWeight: reportsTab === 'connections' ? 'bold' : 'normal',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            Database Connections
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Reports Tab Content */}
+                      {/* Reports Content */}
                       {reportsTab === 'reports' && (
                         <>
                           {canCreateReports() && (
@@ -1523,13 +1485,6 @@ export default function App() {
                             })}
                           </div>
                         </>
-                      )}
-
-                      {/* Database Connections Tab */}
-                      {reportsTab === 'connections' && (
-                        <div>
-                          <DatabaseConnections clientId={tenantId} />
-                        </div>
                       )}
                     </>
                   )}
