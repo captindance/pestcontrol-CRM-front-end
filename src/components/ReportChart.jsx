@@ -67,17 +67,9 @@ export default function ReportChart({ result }) {
                           const denom = useSeparateScale ? (seriesMaxValues[si] || 1) : sharedMax;
                           const height = (numVal / denom) * 100;
                           const formattedVal = formatValue(val, formatMap[s.name]);
-                          const isTicketSeries = typeof s.name === 'string' && s.name.toLowerCase().includes('ticket');
-                          const preferAbove = isTicketSeries && height <= 45;
-                          const labelLen = `${formattedVal ?? ''}`.length;
-                          const longLabel = labelLen >= 8;
-                          const shortLabel = labelLen <= 6;
-                          // Keep placement data-driven (no hard-coded series labels beyond detecting ticket counts)
-                          const canFitVertical = isTicketSeries
-                            ? (height >= 45 && shortLabel)
-                            : (height >= 70 && !longLabel && !preferAbove);
-                          const canFitBottom = !isTicketSeries && height >= 45 && !longLabel && !preferAbove;
-                          const placeLabel = canFitVertical ? 'inside' : (canFitBottom ? 'bottom' : 'above');
+                          
+                          // Simple rule: if bar is tall enough (>= 50px height), label goes inside; otherwise above
+                          const canFitInside = height >= 50;
                           
                           return (
                             <div
@@ -96,7 +88,7 @@ export default function ReportChart({ result }) {
                               }}
                             >
                               {opts.showValuesOnBars && numVal > 0 && (
-                                placeLabel === 'inside' ? (
+                                canFitInside ? (
                                   <span style={{ 
                                     position: 'absolute',
                                     top: '50%',
@@ -109,21 +101,6 @@ export default function ReportChart({ result }) {
                                     whiteSpace: 'nowrap',
                                     pointerEvents: 'none',
                                     letterSpacing: '0.04em',
-                                    fontFamily: 'Segoe UI, Arial, sans-serif',
-                                    fontVariantNumeric: 'tabular-nums'
-                                  }}>
-                                    {formattedVal}
-                                  </span>
-                                ) : placeLabel === 'bottom' ? (
-                                  <span style={{ 
-                                    position: 'absolute', 
-                                    bottom: '6px', 
-                                    fontSize: '1.1rem', 
-                                    color: '#fff', 
-                                    fontWeight: 600, 
-                                    textShadow: '0 2px 5px rgba(0,0,0,0.65)',
-                                    whiteSpace: 'nowrap',
-                                    letterSpacing: '0.03em',
                                     fontFamily: 'Segoe UI, Arial, sans-serif',
                                     fontVariantNumeric: 'tabular-nums'
                                   }}>
