@@ -748,9 +748,20 @@ export default function App() {
     let valueFields = [];
     
     // Try to detect the category field by checking if values are non-numeric strings
+    // Check first few rows to handle NULL values in first row
     for (const field of selected) {
-      const firstValue = resolveFieldValue(rows[0], field);
-      const isNumeric = typeof firstValue === 'number' || !isNaN(parseFloat(firstValue));
+      let isNumeric = false;
+      
+      // Check up to first 3 rows to determine if field is numeric
+      for (let i = 0; i < Math.min(3, rows.length); i++) {
+        const value = resolveFieldValue(rows[i], field);
+        if (value !== null && value !== undefined) {
+          if (typeof value === 'number' || !isNaN(parseFloat(value))) {
+            isNumeric = true;
+            break;
+          }
+        }
+      }
       
       if (!isNumeric && !categoryField) {
         categoryField = field;
