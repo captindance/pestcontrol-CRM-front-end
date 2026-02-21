@@ -97,6 +97,7 @@ async function testConnectionPreSave(data) {
 export default function DatabaseConnections({ clientId }) {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -207,7 +208,11 @@ export default function DatabaseConnections({ clientId }) {
   }
 
   async function handleDelete(connectionId) {
-    if (!window.confirm('Are you sure you want to delete this connection?')) return;
+    if (confirmDeleteId !== connectionId) {
+      setConfirmDeleteId(connectionId);
+      return;
+    }
+    setConfirmDeleteId(null);
     setError(null);
     const result = await deleteConnection(clientId, connectionId);
     if (result.error) {
@@ -526,6 +531,13 @@ export default function DatabaseConnections({ clientId }) {
                   >
                     Edit
                   </button>
+                  {confirmDeleteId === conn.id ? (
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '.8em', color: '#f87171' }}>Delete?</span>
+                      <button onClick={() => handleDelete(conn.id)} style={{ padding: '.3rem .6rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '.85em' }}>Confirm</button>
+                      <button onClick={() => setConfirmDeleteId(null)} style={{ padding: '.3rem .6rem', background: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '.85em' }}>Cancel</button>
+                    </div>
+                  ) : (
                   <button
                     onClick={() => handleDelete(conn.id)}
                     style={{
@@ -540,6 +552,7 @@ export default function DatabaseConnections({ clientId }) {
                   >
                     Delete
                   </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -72,7 +72,7 @@ async function setAssignmentActive(userId, clientId, active) {
   } catch (e) { return { error: e?.message || 'Network error' }; }
 }
 
-export default function AdminPanel() {
+export default function AdminPanel({ showToast }) {
   const [clients, setClients] = useState([]);
   const [managers, setManagers] = useState([]);
   const [email, setEmail] = useState('');
@@ -356,7 +356,7 @@ export default function AdminPanel() {
                 } else {
                   setSmtp(s=>({ ...s, password:'' }));
                 }
-                alert('SMTP settings saved.');
+                showToast ? showToast('SMTP settings saved.', 'success') : setSmtpConfigured(true);
               }
             }}>Save SMTP Settings</button>
             {smtpConfigured && <span style={{ marginLeft:'.5rem', color:'green' }}>Configured</span>}

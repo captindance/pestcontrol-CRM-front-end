@@ -8,7 +8,14 @@ function base64url(obj) { return btoa(JSON.stringify(obj)).replace(/=/g,'').repl
 
 let refreshing = null;
 
-function decodeJwt(token) {
+// Export decodeJwt so other components can use it
+export function decodeJwt(token) {
+  // If no token provided, get from localStorage
+  if (!token) {
+    token = localStorage.getItem('jwt');
+  }
+  if (!token) return null;
+  
   try {
     const [, payload] = token.split('.');
     if (!payload) return null;
@@ -133,6 +140,7 @@ export function logout() {
   localStorage.removeItem('clientId');
   localStorage.removeItem('selected_tenant_id');
   localStorage.removeItem('demo_jwt');
+  localStorage.removeItem('userEmail'); // Clean up legacy storage
 }
 
 export function isSessionExpired() {

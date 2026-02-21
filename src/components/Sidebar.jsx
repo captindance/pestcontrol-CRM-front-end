@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
+function formatRoleLabel(value) {
+  if (!value) return 'Unknown';
+  return String(value)
+    .split('_')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function Sidebar({ role, roles, actingRole, onActingRoleChange, tenantId, tenantOptions, onTenantChange, navItems, currentNav, onNavSelect, onLogout }) {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     // Remember sidebar state in localStorage
@@ -85,7 +93,7 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
           <div style={{ padding: '1rem', borderBottom: '1px solid #ddd' }}>
             <div style={{ marginBottom: '.5rem' }}>
               <small style={{ color: '#666' }}>Primary Role</small>
-              <div><strong>{role || 'unknown'}</strong></div>
+              <div><strong>{formatRoleLabel(role)}</strong></div>
             </div>
             {Array.isArray(roles) && roles.length > 1 && (
               <div>
@@ -95,7 +103,7 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
                   onChange={e => onActingRoleChange(e.target.value)} 
                   style={{ width: '100%', padding: '.25rem' }}
                 >
-                  {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                  {roles.map(r => <option key={r} value={r}>{formatRoleLabel(r)}</option>)}
                 </select>
               </div>
             )}
@@ -159,7 +167,7 @@ export default function Sidebar({ role, roles, actingRole, onActingRoleChange, t
       </div>
 
       {/* Mobile styles */}
-      <style jsx>{`
+      <style>{`
         @media (max-width: 768px) {
           .mobile-overlay {
             display: block !important;

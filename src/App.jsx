@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { getReports, runReport, getReportResult, getAssignments, getAllClients, createReport, updateReport, deleteReport, executeQuery, getQueryResults, clearQueryResults, saveChartConfig, getClient, getUserClients, getMyPermissions } from './api.js';
-import { ensureDemoAuth, logout, isSessionExpired } from './auth.js';
+import { ensureDemoAuth, logout, isSessionExpired, decodeJwt } from './auth.js';
 import ReportChart from './components/ReportChart.jsx';
+import ScheduleModal from './components/ScheduleModal.jsx';
 import Login from './components/Login.jsx';
 import Signup from './components/Signup.jsx';
 import VerifyEmail from './components/VerifyEmail.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import ClientPanel from './components/ClientPanel.jsx';
 import DatabaseConnections from './components/DatabaseConnections.jsx';
+import Dashboard from './components/Dashboard.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import MainLayout from './components/MainLayout.jsx';
 import Toast from './components/Toast.jsx';
 import { ReportCardSkeleton, EmptyState } from './components/LoadingStates.jsx';
+import { formatDateTime as formatDisplayDateTime } from './utils/timeFormatting.js';
 
 // In development backend runs on 3001; in production both frontend & backend are proxied on 3000
 const API_BASE = (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
@@ -69,20 +72,9 @@ export default function App() {
   const [seriesDisplayNames, setSeriesDisplayNames] = useState({}); // { reportId: { seriesName: 'Display Name' } }
   const [toast, setToast] = useState(null); // { message, type }
   const [loadingReports, setLoadingReports] = useState(true);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(null); // reportId when modal is open
 
-  const formatDateTime = (value) => {
-    const d = value ? new Date(value) : null;
-    if (!d || Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-  };
+  const formatRunDateTime = (value) => formatDisplayDateTime(value) || 'Never';
 
   // Toast helper
   const showToast = (message, type = 'success') => {
@@ -267,6 +259,7 @@ export default function App() {
   async function onLoginSuccess() {
     const r = localStorage.getItem('role');
     setRole(r);
+    setPage('app'); // Exit login page and show main app
     setView('reports'); // Reset to reports view after login
     const rs = (() => { try { return JSON.parse(localStorage.getItem('roles') || '[]'); } catch { return []; } })();
     setRoles(rs);
@@ -310,9 +303,12 @@ export default function App() {
           const singleClientId = clientsData[0].id;
           setTenantId(singleClientId);
           localStorage.setItem('selected_tenant_id', singleClientId);
+          // Pass tenantId explicitly to avoid timing issues with state update
+          await refreshReports(singleClientId);
+        } else {
+          await refreshReports();
         }
-        await refreshReports();
-        setLoading(false);
+        // setLoading is now handled by refreshReports
       } else {
         await refreshReports();
       }
@@ -409,7 +405,7 @@ export default function App() {
         setSeriesDisplayNames(newSeriesDisplayNames);
 
         // Auto-load saved results for reports with chart configurations
-        list.reports.forEach(async (r) => {
+        await Promise.all(list.reports.map(async (r) => {
           if (r.chartConfig && Object.keys(r.chartConfig.selectedFields || {}).length > 0) {
             try {
               const res = await getQueryResults(r.id);
@@ -420,14 +416,13 @@ export default function App() {
                   error: res.error || null,
                 };
                 setQueryResults(prev => ({ ...prev, [r.id]: resultData }));
-                setExpandedResultsReportId(r.id);
-                setShowResultDetails(prev => ({ ...prev, [r.id]: false })); // Hide details by default, show chart only
+                // Do not auto-expand — keep all cards collapsed for consistent "Saved Chart" display
               }
             } catch (err) {
               console.error(`Failed to auto-load results for report ${r.id}:`, err);
             }
           }
-        });
+        }));
       } else {
         setReports([]);
         setAvailableConnections([]);
@@ -869,10 +864,16 @@ export default function App() {
 
   // Sidebar JSX
   const navItems = [
-    { key: 'reports', title: 'Reports' },
-    ...(roles.includes('platform_admin') ? [{ key: 'admin', title: 'Admin' }] : []),
-    ...(((permissions && (permissions.canManageUsers || permissions.canInviteUsers)) || (roles.includes('business_owner') || roles.includes('delegate'))) ? [{ key: 'settings', title: 'Settings' }] : [])
+    { key: 'dashboard', title: 'Dashboard' },
+    { key: 'reports', title: 'Reports' }
   ];
+  
+  if (roles.includes('platform_admin')) {
+    navItems.push({ key: 'admin', title: 'Admin' });
+  }
+  if (((permissions && (permissions.canManageUsers || permissions.canInviteUsers)) || (roles.includes('business_owner') || roles.includes('delegate')))) {
+    navItems.push({ key: 'settings', title: 'Settings' });
+  }
 
   const sidebar = (
     <Sidebar
@@ -1126,6 +1127,25 @@ export default function App() {
                                           ✎ Edit
                                         </button>
                                       )}
+                                      <button
+                                        onClick={() => {
+                                          const jwtData = decodeJwt();
+                                          const userEmail = jwtData?.email || '';
+                                          setScheduleModalOpen({ reportId: r.id, userEmail });
+                                        }}
+                                        title="Schedule this report to be emailed automatically"
+                                        style={{
+                                          padding: '.4rem .6rem',
+                                          background: '#17a2b8',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          cursor: 'pointer',
+                                          fontSize: '1rem'
+                                        }}
+                                      >
+                                        📅 Schedule
+                                      </button>
                                       {canDeleteReports() && (
                                         <button
                                           onClick={() => handleDeleteClick(r.id)}
@@ -1161,7 +1181,15 @@ export default function App() {
                                   <div style={{ marginTop: '0.75rem', padding: '.75rem', background: '#ffffff', borderRadius: '6px', border: '1px solid #e3e9ef' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '.5rem', marginBottom: '.5rem' }}>
                                       <strong style={{ fontSize: '0.95rem' }}>Saved Chart</strong>
-                                      <span style={{ fontSize: '0.85rem', color: '#555' }}>Last run: {formatDateTime(queryResults[r.id]?.executedAt)}</span>
+                                      <span style={{ fontSize: '0.85rem', color: '#555', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                        <span>Last run: {formatRunDateTime(queryResults[r.id]?.executedAt)}</span>
+                                        {queryResults[r.id]?.data?.rows?.length > 0 && (
+                                          <span>· Rows: {queryResults[r.id].data.rows.length}</span>
+                                        )}
+                                        {queryResults[r.id]?.data?.executionTimeMs > 0 && (
+                                          <span>· Duration: {queryResults[r.id].data.executionTimeMs} ms</span>
+                                        )}
+                                      </span>
                                     </div>
                                     <ReportChart result={{ data: chartData }} />
                                   </div>
@@ -1191,9 +1219,9 @@ export default function App() {
                                 <div>
                                   <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                                     <span><strong>Rows:</strong> {queryResults[r.id].data.rows.length}</span>
-                                    <span><strong>Executed:</strong> {formatDateTime(queryResults[r.id].executedAt)}</span>
+                                    <span><strong>Last run:</strong> {formatRunDateTime(queryResults[r.id].executedAt)}</span>
                                     {queryResults[r.id].data.executionTimeMs && (
-                                      <span><strong>Time:</strong> {queryResults[r.id].data.executionTimeMs}ms</span>
+                                      <span><strong>Duration:</strong> {queryResults[r.id].data.executionTimeMs} ms</span>
                                     )}
                                   </div>
 
@@ -1504,8 +1532,12 @@ export default function App() {
         </>
       )}
 
+      {view === 'dashboard' && (
+        <Dashboard showToast={showToast} />
+      )}
+
       {view === 'admin' && roles.includes('platform_admin') && (
-        <AdminPanel />
+        <AdminPanel showToast={showToast} />
       )}
 
       {view === 'settings' && (((permissions && (permissions.canManageUsers || permissions.canInviteUsers)) || (roles.includes('business_owner') || roles.includes('delegate')))) && clientInfo && (
@@ -1571,6 +1603,19 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+      
+      {/* Schedule Modal */}
+      {scheduleModalOpen && (
+        <ScheduleModal
+          reportId={scheduleModalOpen.reportId}
+          reportName={reports.find(r => r.id === scheduleModalOpen.reportId)?.name || 'Unknown Report'}
+          userEmail={scheduleModalOpen.userEmail}
+          onClose={() => setScheduleModalOpen(null)}
+          showToast={(message, type) => setToast({ message, type })}
+          currentUserId={decodeJwt()?.userId}
+          userRole={actingRole || role}
+        />
       )}
     </>
   );
