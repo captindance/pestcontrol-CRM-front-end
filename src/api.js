@@ -264,3 +264,51 @@ export async function getInvitations(clientId = null) {
     return { error: e?.message || 'Network error' };
   }
 }
+
+// Scheduled Reports API
+export async function getSchedules(reportId, includeDisabled = true) {
+  const params = new URLSearchParams();
+  if (reportId) params.append('reportId', reportId);
+  params.append('includeDisabled', includeDisabled ? 'true' : 'false');
+  const query = params.toString() ? `?${params}` : '';
+  return await request(`/schedules${query}`);
+}
+
+export async function createSchedule(scheduleData) {
+  return await request('/schedules', { 
+    method: 'POST', 
+    body: JSON.stringify(scheduleData) 
+  });
+}
+
+export async function updateSchedule(scheduleId, scheduleData) {
+  return await request(`/schedules/${scheduleId}`, { 
+    method: 'PATCH', 
+    body: JSON.stringify(scheduleData) 
+  });
+}
+
+export async function deleteSchedule(scheduleId) {
+  return await request(`/schedules/${scheduleId}`, { method: 'DELETE' });
+}
+
+export async function getScheduleExecutions(scheduleId) {
+  return await request(`/schedules/${scheduleId}/executions`);
+}
+
+export async function getAuditLogs(scheduleId, days = 30) {
+  const params = new URLSearchParams();
+  if (scheduleId) params.append('scheduleId', scheduleId);
+  params.append('days', days.toString());
+  
+  return request(`/audit/schedule-changes?${params}`);
+}
+
+// Dashboard API
+export async function getExternalSchedules() {
+  return await request('/dashboard/external-schedules');
+}
+
+export async function getDashboardStats() {
+  return await request('/dashboard/stats');
+}

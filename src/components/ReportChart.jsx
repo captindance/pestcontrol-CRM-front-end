@@ -4,23 +4,25 @@ import React from 'react';
 export default function ReportChart({ result }) {
   if (!result?.data) return <div style={{ color: '#999' }}>Waiting for data...</div>;
   const { data } = result;
-  const xLabel = data.xLabel || 'Category';
+  const xLabel = typeof data.xLabel === 'string' ? data.xLabel.trim() : '';
   const yLabel = data.yLabel || 'Value';
   const formatMap = data.seriesFormats || {};
   const opts = data.displayOptions || {};
 
   if (data.type === 'table') {
     return (
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>{data.columns.map(c => <th key={c} style={{ border: '1px solid #ccc', padding: '4px' }}>{c}</th>)}</tr>
-        </thead>
-        <tbody>
-          {data.rows.map((row, idx) => (
-            <tr key={idx}>{row.map((cell, i) => <td key={i} style={{ border: '1px solid #eee', padding: '4px' }}>{cell}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="chart-container" data-chart-type="table" data-chart-ready="true">
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>{data.columns.map(c => <th key={c} style={{ border: '1px solid #ccc', padding: '4px' }}>{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {data.rows.map((row, idx) => (
+              <tr key={idx}>{row.map((cell, i) => <td key={i} style={{ border: '1px solid #eee', padding: '4px' }}>{cell}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   }
 
@@ -47,7 +49,7 @@ export default function ReportChart({ result }) {
 
   if (data.type === 'bar') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '100%' }}>
+      <div className="chart-container" data-chart-type="bar" data-chart-ready="true" style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '100%' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: '#555', fontSize: '0.85rem', minWidth: '20px', textAlign: 'center' }}>{yLabel}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -156,14 +158,13 @@ export default function ReportChart({ result }) {
             </div>
           </div>
         </div>
-        <div style={{ textAlign: 'center', color: '#555', fontSize: '0.85rem', marginTop: '4px' }}>{xLabel}</div>
       </div>
     );
   }
 
   if (data.type === 'line') {
     return (
-      <div>
+      <div className="chart-container" data-chart-type="line" data-chart-ready="true">
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', fontSize: '0.85rem', color: '#555' }}>
           <span>Categories:</span>
           <span>{categories.join(' | ')}</span>
@@ -184,7 +185,7 @@ export default function ReportChart({ result }) {
   if (data.type === 'pie') {
     const total = series[0]?.data?.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0) || 0;
     return (
-      <div style={{ display: 'grid', gap: '6px' }}>
+      <div className="chart-container" data-chart-type="pie" data-chart-ready="true" style={{ display: 'grid', gap: '6px' }}>
         {categories.map((cat, idx) => {
           const rawVal = Number.isFinite(series[0]?.data[idx]) ? series[0].data[idx] : 0;
           const pct = total ? ((rawVal / total) * 100).toFixed(1) : '0.0';

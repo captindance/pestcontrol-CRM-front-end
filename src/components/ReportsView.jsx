@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReportChart from './ReportChart.jsx';
+import ScheduleModal from './ScheduleModal.jsx';
+import { formatDateTime as formatDisplayDateTime } from '../utils/timeFormatting.js';
 
 export default function ReportsView({
   tenantId,
@@ -61,21 +63,14 @@ export default function ReportsView({
   onExpandResults,
   onSetEditReportName,
   onSetEditReportConnectionId,
-  onSetEditReportSqlQuery
+  onSetEditReportSqlQuery,
+  showToast,
+  currentUserId,
+  userRole
 }) {
-  const formatDateTime = (value) => {
-    const d = value ? new Date(value) : null;
-    if (!d || Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-  };
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(null); // reportId when open
+
+  const formatRunDateTime = (value) => formatDisplayDateTime(value) || 'Never';
 
   const buildChartData = (reportId) => {
     const result = queryResults[reportId];
@@ -405,6 +400,21 @@ export default function ReportsView({
                                       ✎ Edit
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => setScheduleModalOpen(r.id)}
+                                    title="Schedule this report to be emailed automatically"
+                                    style={{
+                                      padding: '.4rem .6rem',
+                                      background: '#17a2b8',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '1rem'
+                                    }}
+                                  >
+                                    📅 Schedule
+                                  </button>
                                   {canDeleteReports() && (
                                     <button
                                       onClick={() => onDeleteClick(r.id)}
@@ -438,7 +448,15 @@ export default function ReportsView({
                               <div style={{ marginTop: '0.75rem', padding: '.75rem', background: '#ffffff', borderRadius: '6px', border: '1px solid #e3e9ef' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '.5rem', marginBottom: '.5rem' }}>
                                   <strong style={{ fontSize: '0.95rem' }}>Saved Chart</strong>
-                                  <span style={{ fontSize: '0.85rem', color: '#555' }}>Last run: {formatDateTime(queryResults[r.id]?.executedAt)}</span>
+                                  <span style={{ fontSize: '0.85rem', color: '#555', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                    <span>Last run: {formatRunDateTime(queryResults[r.id]?.executedAt)}</span>
+                                    {queryResults[r.id]?.data?.rows?.length > 0 && (
+                                      <span>· Rows: {queryResults[r.id].data.rows.length}</span>
+                                    )}
+                                    {queryResults[r.id]?.data?.executionTimeMs > 0 && (
+                                      <span>· Duration: {queryResults[r.id].data.executionTimeMs} ms</span>
+                                    )}
+                                  </span>
                                 </div>
                                 <ReportChart result={{ data: chartData }} />
                               </div>
@@ -499,6 +517,18 @@ export default function ReportsView({
             Cancel
           </button>
         </div>
+      )}
+      
+      {/* Schedule Modal */}
+      {scheduleModalOpen && (
+        <ScheduleModal
+          reportId={scheduleModalOpen}
+          reportName={reports.find(r => r.id === scheduleModalOpen)?.name || 'Unknown Report'}
+          onClose={() => setScheduleModalOpen(null)}
+          showToast={showToast}
+          currentUserId={currentUserId}
+          userRole={userRole || actingRole}
+        />
       )}
     </>
   );
